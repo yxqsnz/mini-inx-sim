@@ -4,6 +4,8 @@ use std::{
     hash::Hash,
 };
 
+use crate::{human::Gender, Human};
+
 pub trait RemovePercent<T> {
     fn remove_percent<P>(self, percent: usize, predicate: P) -> Self
     where
@@ -65,4 +67,14 @@ fn remove_20_percent() {
         vec.remove_percent(20, |i| i % 2 == 0),
         vec![1, 3, 5, 7, 8, 9, 10]
     );
+}
+
+#[must_use]
+pub fn extract_two(f1: &[Human], f2: &[Human]) -> Option<(Vec<Human>, Vec<Human>)> {
+    let fem1 = f1.iter().find(|x| x.gender == Gender::Female)?.clone();
+    let fem2 = f2.iter().find(|x| x.gender == Gender::Female)?.clone();
+    let male1 = f1.iter().find(|x| x.gender == Gender::Male)?.clone();
+    let male2 = f2.iter().find(|x| x.gender == Gender::Male)?.clone();
+
+    Some((vec![fem1, male2], vec![fem2, male1]))
 }

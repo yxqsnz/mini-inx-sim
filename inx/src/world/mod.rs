@@ -8,6 +8,7 @@ use crate::{
 #[derive(Clone, Debug)]
 pub struct World {
     pub peoples: Vec<Human>,
+    pub couples: Vec<Couple>,
     pub year: u64,
 }
 
@@ -15,43 +16,25 @@ impl World {
     pub fn new(population: usize, gene_count: usize) -> World {
         World {
             year: 0,
+            couples: vec![],
             peoples: repeat_with(|| Human::random(gene_count))
                 .take(population)
                 .collect(),
         }
     }
 
-    pub fn find_couple(&mut self, prefer: bool) -> Option<Couple> {
-        let peoples = &mut self.peoples;
-        let pred = |p: &&Human| {
-            if prefer {
-                p.parents.is_some()
-            } else {
-                true
-            }
-        };
+    pub fn find_couple(&mut self) -> Option<()> {
+        let father_position = self.peoples.iter().position(|p| p.gender == Gender::Male)?;
+        let father = self.peoples.remove(father_position);
 
-        let father_position = peoples
+        let mother_position = self
+            .peoples
             .iter()
-            .filter(pred)
-            .position(|p| p.gender == Gender::Male)?;
-        let father = peoples[father_position].to_owned();
-
-        if father.parents.is_none() {
-            peoples.remove(father_position);
-        }
-
-        let mother_position = peoples
-            .iter()
-            .filter(pred)
             .position(|p| p.gender == Gender::Female)?;
+        let mother = self.peoples.remove(mother_position);
 
-        let mother = peoples[mother_position].to_owned();
+        self.couples.push(Couple::new(mother, father));
 
-        if mother.parents.is_none() {
-            peoples.remove(mother_position);
-        }
-
-        Some(Couple { mother, father })
+        Some(())
     }
 }

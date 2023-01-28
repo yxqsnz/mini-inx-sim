@@ -5,13 +5,16 @@ mod ui;
 fn main() {
     info!("Starting version {}", env!("CARGO_PKG_VERSION"));
     info!("Creating world");
-    let world = World::new(10, 20);
+    let world = World::new(5, 2);
     let mut sim = Simulator::new(world);
 
-    for _ in 0..1000  {
+    sim.prepare();
+
+    for _ in 0..100 {
         sim.step();
         info!("World: ");
-        info!(" Population: {}", sim.world.peoples.len());
+        info!(" R. Population: {}", sim.world.peoples.len());
+        info!(" Couples: {}", sim.world.couples.len());
         info!(" Year: {}", sim.world.year);
         info!(" News: {:?}", sim.history.pop());
 
@@ -22,5 +25,5 @@ fn main() {
 
     info!("History: {:#?}", sim.history);
 
-    println!("{:#?}", sim.world.peoples)
+    println!("{:#?}", sim.world.couples)
 }

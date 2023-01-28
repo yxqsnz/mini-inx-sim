@@ -6,4 +6,5 @@ pub enum Entry {
     NewChild,
     FailedToCreateCoupleBecauseMinor,
     FailedToCreateCoupleBecauseGenderEqual,
+    GenerationJoining { started :bool }
 }
