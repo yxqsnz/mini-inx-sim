@@ -1,3 +1,7 @@
 pub mod human;
-pub use human::*;
-pub mod world;
+pub mod util;
+pub use human::Human;
+mod simulator;
+pub use simulator::*;
+mod world;
+pub use world::World;

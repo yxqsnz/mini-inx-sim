@@ -102,6 +102,7 @@ name = "inx-cli"
 version = "0.1.0"
 dependencies = [
  "env_logger",
+ "inx",
  "once_cell",
  "owo-colors",
 ]
