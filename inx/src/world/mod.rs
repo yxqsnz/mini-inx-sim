@@ -21,14 +21,36 @@ impl World {
         }
     }
 
-    pub fn find_couple(&mut self) -> Option<Couple> {
+    pub fn find_couple(&mut self, prefer: bool) -> Option<Couple> {
         let peoples = &mut self.peoples;
+        let pred = |p: &&Human| {
+            if prefer {
+                p.parents.is_some()
+            } else {
+                true
+            }
+        };
 
-        let father_position = peoples.iter().position(|p| p.gender == Gender::Male)?;
-        let father = peoples.remove(father_position);
+        let father_position = peoples
+            .iter()
+            .filter(pred)
+            .position(|p| p.gender == Gender::Male)?;
+        let father = peoples[father_position].to_owned();
 
-        let mother_position = peoples.iter().position(|p| p.gender == Gender::Female)?;
-        let mother = peoples.remove(mother_position);
+        if father.parents.is_none() {
+            peoples.remove(father_position);
+        }
+
+        let mother_position = peoples
+            .iter()
+            .filter(pred)
+            .position(|p| p.gender == Gender::Female)?;
+
+        let mother = peoples[mother_position].to_owned();
+
+        if mother.parents.is_none() {
+            peoples.remove(mother_position);
+        }
 
         Some(Couple { mother, father })
     }

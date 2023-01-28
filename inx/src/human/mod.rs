@@ -87,7 +87,7 @@ impl Human {
             stage: Stage::Fetus,
             gender: random(),
             parents: Some(Box::new(Couple::new(self.to_owned(), with.to_owned()))),
-            genes: merge_genes(&self.genes, &with.genes),
+            genes: merge_genes(&self.genes, &with.genes, self.genes.len()),
             visible_characteristics: Default::default(),
         })
     }

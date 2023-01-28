@@ -1,3 +1,5 @@
+use rand::random;
+
 use crate::{
     human::{Couple, MakeChildError, Stage},
     Human, World,
@@ -6,11 +8,6 @@ use crate::{
 use self::history::Entry;
 
 pub mod history;
-
-#[derive(Debug)]
-pub enum Step {
-    MakingFamiles,
-}
 
 #[derive(Debug)]
 pub struct Simulator {
@@ -27,13 +24,21 @@ impl Simulator {
     }
 
     #[inline]
-    pub fn make_child(
-        &mut self,
-        Couple { mother, father }: Couple,
-    ) -> Result<Human, MakeChildError> {
+    pub fn make_child(&mut self, Couple { mother, father }: Couple) {
         self.world.year += 2;
 
-        mother.make_child(&father)
+        match mother.make_child(&father) {
+            Err(MakeChildError::CoupleHaveAMinor) => {
+                self.mark(Entry::FailedToCreateCoupleBecauseMinor)
+            }
+            Err(MakeChildError::InvalidCouple) => {
+                self.mark(Entry::FailedToCreateCoupleBecauseGenderEqual)
+            }
+            Ok(child) => {
+                self.world.peoples.push(child);
+                self.mark(Entry::NewChild);
+            }
+        }
     }
 
     pub fn increment_people_stages(&mut self) {
@@ -63,23 +68,18 @@ impl Simulator {
         self.history.push(entry);
     }
 
-    pub fn step(&mut self) -> Option<()> {
-        if let Some(couple) = self.world.find_couple() {
-            match self.make_child(couple) {
-                Err(MakeChildError::CoupleHaveAMinor) => {
-                    self.mark(Entry::FailedToCreateCoupleBecauseMinor)
-                }
-                Err(MakeChildError::InvalidCouple) => {
-                    self.mark(Entry::FailedToCreateCoupleBecauseGenderEqual)
-                }
-                Ok(child) => {
-                    self.world.peoples.push(child);
-                    self.mark(Entry::NewChild);
-                }
-            }
+    fn walk(&mut self) {
+        if let Some(couple) = self.world.find_couple(random()) {
+            self.make_child(couple);
         }
+    }
 
+    pub fn step(&mut self) -> Option<()> {
         self.increment_people_stages();
+
+        if random::<bool>() {
+            self.walk();
+        }
 
         self.world.year += 10;
         Some(())

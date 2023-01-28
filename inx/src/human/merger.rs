@@ -2,19 +2,17 @@ use std::iter::repeat_with;
 
 use rand::random;
 
-use crate::util::RemovePercent;
-
 use super::Gene;
 
-pub fn merge_genes(a: &[Gene], b: &[Gene]) -> Vec<Gene> {
+pub fn merge_genes(a: &[Gene], b: &[Gene], max_genes: usize) -> Vec<Gene> {
     let mut output = vec![];
 
-    output.extend_from_slice(a);
-    output.extend_from_slice(b);
+    let av = (a.len() as f64 * 0.25) as usize;
+    let bv = (b.len() as f64 * 0.25) as usize;
 
-    output = output.remove_percent(25, |p| !p.dominant);
-    output = output.remove_percent(5, |p| p.dominant);
-    output.extend(repeat_with(random).take(20).collect::<Vec<_>>());
+    output.extend_from_slice(&a[0..av]);
+    output.extend_from_slice(&b[0..bv]);
+    output.extend(repeat_with(random).take(max_genes / 2).collect::<Vec<_>>());
 
     output
 }
