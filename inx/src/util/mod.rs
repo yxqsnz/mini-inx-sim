@@ -78,3 +78,17 @@ pub fn extract_two(f1: &[Human], f2: &[Human]) -> Option<(Vec<Human>, Vec<Human>
 
     Some((vec![fem1, male2], vec![fem2, male1]))
 }
+
+pub trait VecTake<T> {
+    fn take(&mut self, index: usize) -> Option<T>;
+}
+
+impl<T> VecTake<T> for Vec<T> {
+    fn take(&mut self, index: usize) -> Option<T> {
+        if self.get(index).is_none() {
+            None
+        } else {
+            Some(self.swap_remove(index))
+        }
+    }
+}

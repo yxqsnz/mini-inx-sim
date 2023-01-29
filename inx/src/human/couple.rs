@@ -2,7 +2,7 @@ use rand::random;
 
 use crate::Human;
 
-use super::{merger::merge_genes, Stage};
+use super::merger::merge_genes;
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Couple {
@@ -10,6 +10,7 @@ pub struct Couple {
     pub father: Human,
     pub children: Vec<Human>,
     pub descedent: Option<Box<Couple>>,
+    pub descedent_count: u64,
 }
 
 impl Couple {
@@ -22,10 +23,6 @@ impl Couple {
     }
 
     pub fn make_child(&mut self) -> Result<(), MakeChildError> {
-        if self.father.stage.minor() || self.father.stage.minor() {
-            return Err(MakeChildError::CoupleHaveAMinor);
-        }
-
         if self.father.gender == self.mother.gender {
             return Err(MakeChildError::InvalidCouple);
         }
@@ -37,7 +34,7 @@ impl Couple {
                 &self.father.genes,
                 self.mother.genes.len(),
             ),
-            stage: Stage::Fetus,
+
             ..Default::default()
         };
 
@@ -49,25 +46,4 @@ impl Couple {
 #[derive(Debug, Clone, PartialEq)]
 pub enum MakeChildError {
     InvalidCouple,
-    CoupleHaveAMinor,
-}
-
-#[test]
-fn make_child_minor_fail() {
-    use super::Gender;
-    let a = Human {
-        gender: Gender::Female,
-        stage: Stage::Child,
-        ..Default::default()
-    };
-
-    let b = Human {
-        gender: Gender::Male,
-        stage: Stage::Child,
-        ..Default::default()
-    };
-
-    let mut couple = Couple::new(a, b);
-
-    assert_eq!(couple.make_child(), Err(MakeChildError::CoupleHaveAMinor))
 }

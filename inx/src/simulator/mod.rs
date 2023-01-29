@@ -1,52 +1,36 @@
-use std::mem::swap;
-
 use crate::{
-    human::{Couple, MakeChildError, Stage},
-    util::extract_two,
-    Human, World,
+    generator::build_generation,
+    human::{Couple, MakeChildError},
+    World,
 };
 
 use self::history::Entry;
-
+pub mod generator;
 pub mod history;
+
+#[derive(Debug, PartialEq)]
+pub enum Step {
+    BuildingCouples,
+    GenerationgGenerations,
+}
 
 #[derive(Debug)]
 pub struct Simulator {
     pub world: World,
     pub history: Vec<history::Entry>,
+    pub step: Step,
+    pub max_generations: u64,
+    pub created_generations: u64,
 }
 
 impl Simulator {
-    pub fn new(world: World) -> Self {
+    pub fn new(world: World, max_generations: u64) -> Self {
         Self {
             world,
             history: Vec::new(),
-        }
-    }
-
-    pub fn increment_people_stages(&mut self) {
-        let mut couples = self.world.couples.clone();
-
-        for couple in &mut couples {
-            for people in couple.children.iter_mut() {
-                match people.stage {
-                    Stage::Fetus => {
-                        people.stage = Stage::Child;
-                        self.history.push(Entry::AdvanceStage {
-                            from: Stage::Fetus,
-                            to: Stage::Child,
-                        });
-                    }
-                    Stage::Child => {
-                        self.history.push(Entry::AdvanceStage {
-                            from: Stage::Child,
-                            to: Stage::Adult,
-                        });
-                        people.stage = Stage::Adult;
-                    }
-                    _ => {}
-                }
-            }
+            max_generations,
+            step: Step::BuildingCouples,
+            created_generations: 0,
         }
     }
 
@@ -55,114 +39,70 @@ impl Simulator {
         self.history.push(entry);
     }
 
-    pub fn prepare(&mut self) {
-        while self.world.find_couple().is_some() {}
-        self.basic_childs();
-    }
+    fn make_couple(&mut self) -> Option<Couple> {
+        let mut couple = self.world.find_couple()?;
+        self.world.year += 2;
 
-    fn basic_childs(&mut self) {
-        let mut couples = self.world.couples.clone();
-
-        for couple in couples.iter_mut() {
-            self.world.year += 2;
-
-            match couple.make_child().and(couple.make_child()) {
-                Err(MakeChildError::CoupleHaveAMinor) => {
-                    self.mark(Entry::FailedToCreateCoupleBecauseMinor)
-                }
-                Err(MakeChildError::InvalidCouple) => {
-                    self.mark(Entry::FailedToCreateCoupleBecauseGenderEqual)
-                }
-                Ok(()) => {
-                    self.mark(Entry::NewChild);
-                }
+        match couple.make_child().and(couple.make_child()) {
+            Err(MakeChildError::InvalidCouple) => {
+                self.mark(Entry::FailedToCreateCoupleBecauseGenderEqual)
+            }
+            Ok(()) => {
+                self.mark(Entry::NewChild);
             }
         }
 
-        self.world.couples = couples;
+        Some(couple)
     }
 
-    pub fn step(&mut self) -> Option<()> {
-        self.increment_people_stages();
+    pub fn step(&mut self) {
+        match self.step {
+            Step::BuildingCouples => match self.make_couple() {
+                Some(couple) => {
+                    self.world.couples.push(couple);
+                }
+                None => {
+                    self.step = Step::GenerationgGenerations;
+                }
+            },
 
-        self.build_generations();
+            Step::GenerationgGenerations => {
+                let mut generations = 0;
 
-        self.world.year += 10;
-        Some(())
-    }
+                self.build_generations(&mut generations);
+                self.created_generations += generations;
 
-    fn build_generation(a: &mut Couple, b: &mut Couple) -> Option<()> {
-        let (f1, f2) = extract_two(&a.children, &b.children)?;
-
-        let mut sim_a = Simulator::new(World {
-            peoples: f1.to_owned(),
-            couples: vec![],
-            year: 0,
-        });
-
-        let mut sim_b = Simulator::new(World {
-            peoples: f2.to_owned(),
-            couples: vec![],
-            year: 0,
-        });
-
-        sim_a.prepare();
-        sim_b.prepare();
-
-        for _ in 0..=2 {
-            sim_a.step();
-            sim_b.step();
+                self.world.year += 10;
+            }
         }
-
-        let aa = sim_a
-            .world
-            .couples
-            .into_iter()
-            .map(|x| x.children)
-            .flatten();
-
-        a.descedent = Some(Box::new(Couple {
-            mother: f1[0].to_owned(),
-            father: f1[1].to_owned(),
-            children: aa.collect(),
-            descedent: None,
-        }));
-
-        let bb = sim_b
-            .world
-            .couples
-            .into_iter()
-            .map(|x| x.children)
-            .flatten();
-
-        b.descedent = Some(Box::new(Couple {
-            mother: f2[0].to_owned(),
-            father: f2[1].to_owned(),
-            children: bb.collect(),
-            descedent: None,
-        }));
-
-        Some(())
     }
 
-    fn build_generations(&mut self) {
-        let mut chunks = self.world.couples.chunks(2);
-        let mut target = vec![];
+    fn build_generations(&mut self, generation_count: &mut u64) {
+        let mut new_couples = vec![];
 
-        while let Some(chunk) = chunks.next() {
-            if chunk.len() != 2 {
+        for chunk in self.world.couples.chunks(2) {
+            if chunk.len() < 2 {
                 continue;
             }
 
-            let mut a = chunk[0].to_owned();
-            let mut b = chunk[0].to_owned();
+            let mut family_a = chunk[0].to_owned();
+            let mut family_b = chunk[1].to_owned();
 
-            Self::build_generation(&mut a, &mut b);
+            log::debug!("Family (A): {family_a:#?}");
+            log::debug!("Family (B): {family_b:#?}");
 
-            target.push(a);
-            target.push(b);
+            if family_a.descedent_count > self.max_generations
+                || family_b.descedent_count > self.max_generations
+            {
+                continue;
+            }
+
+            *generation_count +=
+                build_generation(&mut family_a, &mut family_b, self.max_generations);
+
+            new_couples.extend_from_slice(&[family_a, family_b]);
         }
 
-        self.world.couples = target;
+        self.world.couples = new_couples;
     }
 }

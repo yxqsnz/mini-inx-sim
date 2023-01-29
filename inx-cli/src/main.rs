@@ -1,29 +1,32 @@
-use inx::{Simulator, World};
+use inx::{Simulator, Step, World};
 
 mod ui;
 
+// info!("World: ");
+// info!(" R. Population: {}", sim.world.peoples.len());
+// info!(" Couples: {}", sim.world.couples.len());
+// info!(" Year: {}", sim.world.year);
+// info!(" News: {:?}", sim.history.pop());
 fn main() {
+    env_logger::init();
     info!("Starting version {}", env!("CARGO_PKG_VERSION"));
     info!("Creating world");
-    let world = World::new(5, 2);
-    let mut sim = Simulator::new(world);
 
-    sim.prepare();
+    loop {
+        let world = World::new(25, 2);
+        let mut sim = Simulator::new(world, 5);
 
-    for _ in 0..100 {
-        sim.step();
-        info!("World: ");
-        info!(" R. Population: {}", sim.world.peoples.len());
-        info!(" Couples: {}", sim.world.couples.len());
-        info!(" Year: {}", sim.world.year);
-        info!(" News: {:?}", sim.history.pop());
+        for _ in 0..1000 {
+            sim.step();
+        }
 
-        if sim.world.peoples.len() == 0 {
+        if sim.created_generations < 5 {
+            continue;
+        } else {
+            info!("Done");
+
+            println!("{:#?}", sim.world.couples);
             break;
         }
     }
-
-    info!("History: {:#?}", sim.history);
-
-    println!("{:#?}", sim.world.couples)
 }

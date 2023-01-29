@@ -17,7 +17,6 @@ pub struct VisibleCharacteristics {
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Human {
-    pub stage: Stage,
     pub gender: Gender,
     pub genes: Vec<Gene>,
     pub visible_characteristics: VisibleCharacteristics,
@@ -30,25 +29,11 @@ pub enum Gender {
     Female,
 }
 
-#[derive(Debug, Default, Clone, PartialEq)]
-pub enum Stage {
-    #[default]
-    Fetus,
-    Child,
-    Adult,
-}
-
-impl Stage {
-    pub const fn minor(&self) -> bool {
-        matches!(self, Stage::Fetus | Stage::Child)
-    }
-}
-
 impl Human {
     pub fn random(gene_amount: usize) -> Self {
         Self {
             gender: random(),
-            stage: Stage::Adult,
+
             genes: repeat_with(random).take(gene_amount).collect(),
             visible_characteristics: VisibleCharacteristics::default(),
         }
