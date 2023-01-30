@@ -35,7 +35,7 @@ fn render_couple(root: &mut Vec<Entry>, couple: &Couple) {
         .children
         .iter()
         .map(render::human)
-        .map(Entry::Text)
+        .map(Entry::CustomRender)
         .collect();
 
     if let Some(ref descedent) = couple.descedent {
@@ -44,9 +44,9 @@ fn render_couple(root: &mut Vec<Entry>, couple: &Couple) {
 
     let new_tree = Tree::new(
         format!(
-            "{} {}",
-            render::human(&couple.mother),
-            render::human(&couple.father),
+            "Mae: {}, Pai: {}",
+            render::human_text(&couple.mother),
+            render::human_text(&couple.father),
         ),
         child_tree,
     );
@@ -178,7 +178,7 @@ impl eframe::App for App {
                         let mut entries = Vec::new();
 
                         for people in &sim.world.peoples {
-                            entries.push(Entry::Text(render::human(people)));
+                            entries.push(Entry::CustomRender(render::human(people)));
                         }
 
                         for couple in &sim.world.couples {

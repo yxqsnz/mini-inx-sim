@@ -1,12 +1,14 @@
 use egui::{CollapsingHeader, Ui};
 
-#[derive(Clone)]
+pub type CustomRender = Box<dyn Fn(&mut Ui)>;
+
 pub enum Entry {
     Text(String),
+    CustomRender(CustomRender),
     Tree(Box<Tree>),
 }
 
-#[derive(Default, Clone)]
+#[derive(Default)]
 
 pub struct Tree {
     pub entries: Vec<Entry>,
@@ -24,6 +26,10 @@ impl Tree {
                 match item {
                     Entry::Text(ref entry) => {
                         ui.label(entry);
+                    }
+
+                    Entry::CustomRender(e) => {
+                        e(ui);
                     }
 
                     Entry::Tree(ref tree) => tree.show(ui),
