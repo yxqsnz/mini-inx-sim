@@ -133,6 +133,28 @@ impl eframe::App for App {
                                 ui.colored_label(Color32::LIGHT_RED, "Não executando");
                             }
                             ui.end_row();
+
+                            ui.label("Casais: ");
+
+                            if let Some(simulator_prom) = simulator {
+                                if let Some(simulator) = simulator_prom.ready() {
+                                    ui.label(simulator.world.couples.len().to_string());
+                                }
+                            } else {
+                                ui.colored_label(Color32::LIGHT_RED, "Não executando");
+                            }
+                            ui.end_row();
+
+                            ui.label("Pessoas normais: ");
+
+                            if let Some(simulator_prom) = simulator {
+                                if let Some(simulator) = simulator_prom.ready() {
+                                    ui.label(simulator.world.peoples.len().to_string());
+                                }
+                            } else {
+                                ui.colored_label(Color32::LIGHT_RED, "Não executando");
+                            }
+                            ui.end_row();
                         });
 
                     ui.separator();
