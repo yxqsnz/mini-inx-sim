@@ -2,8 +2,6 @@ use rand::random;
 
 use crate::Human;
 
-use super::merger::merge_genes;
-
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Couple {
     pub mother: Human,
@@ -29,12 +27,10 @@ impl Couple {
 
         let child = Human {
             gender: random(),
-            genes: merge_genes(
-                &self.mother.genes,
-                &self.father.genes,
-                self.mother.genes.len(),
-            ),
-
+            characteristics: self
+                .father
+                .characteristics
+                .merge(&self.mother.characteristics),
             ..Default::default()
         };
 

@@ -8,3 +8,6 @@ edition = "2021"
 [dependencies]
 log = "0.4.17"
 rand = "0.8.5"
+
+[target.wasm32-unknown-unknown.dependencies]
+getrandom = { version = "0.2.8", features = ["js"] }

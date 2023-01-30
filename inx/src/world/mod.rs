@@ -13,13 +13,11 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(population: usize, gene_count: usize) -> Self {
+    pub fn new(population: usize) -> Self {
         World {
             year: 0,
             couples: vec![],
-            peoples: repeat_with(|| Human::random(gene_count))
-                .take(population)
-                .collect(),
+            peoples: repeat_with(|| Human::random()).take(population).collect(),
         }
     }
 

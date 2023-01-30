@@ -1,5 +1,9 @@
 [workspace]
 members = [
  "inx",
- "inx-cli"
+ "inx-cli",
+ "inx-ui"
 ]
+
+[profile.release]
+opt-level = "z"

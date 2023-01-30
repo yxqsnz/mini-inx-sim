@@ -13,7 +13,7 @@ fn main() {
     info!("Creating world");
 
     loop {
-        let world = World::new(25, 2);
+        let world = World::new(25);
         let mut sim = Simulator::new(world, 5);
 
         for _ in 0..1000 {

@@ -1,25 +1,13 @@
-mod gene;
-pub mod merger;
-pub use gene::*;
+mod characteristics;
+pub use characteristics::*;
 use rand::{distributions::Standard, prelude::Distribution, random, Rng};
-use std::iter::repeat_with;
 mod couple;
 pub use couple::*;
-
-use crate::util::most_frequent;
-
-#[derive(Clone, Debug, Default, PartialEq)]
-pub struct VisibleCharacteristics {
-    pub eye_color: EyeColor,
-    pub hair_color: HairColor,
-    pub skin_color: SkinColor,
-}
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Human {
     pub gender: Gender,
-    pub genes: Vec<Gene>,
-    pub visible_characteristics: VisibleCharacteristics,
+    pub characteristics: Characteristics,
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -30,17 +18,11 @@ pub enum Gender {
 }
 
 impl Human {
-    pub fn random(gene_amount: usize) -> Self {
+    pub fn random() -> Self {
         Self {
             gender: random(),
-
-            genes: repeat_with(random).take(gene_amount).collect(),
-            visible_characteristics: VisibleCharacteristics::default(),
+            characteristics: random(),
         }
-    }
-
-    pub fn compute_visible_characteristics(&mut self) {
-        todo!()
     }
 }
 
